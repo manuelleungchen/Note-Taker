@@ -1,6 +1,8 @@
 const express = require("express");     // Module to create server object 
 const fs = require("fs");      // Module to access File System
 const path = require("path")    // Module to access System Path
+const uniqid = require("uniqid")    // Module to create a random ID
+
 
 // LOAD DATA
 // const notesData = require('./db/db.json'); // These data sources hold arrays of information on notes data
@@ -21,19 +23,6 @@ app.use(express.static('public'));
 app.get('/notes', (req, res) => res.sendFile(path.join(__dirname, '/public/notes.html')));
 
 // GET all notes
-// app.get("/api/notes", (req, res) => res.json(notesData));
-
-// app.get('/api/notes', (req, res) => {
-//     try {
-//         const jsonString = fs.readFileSync("./db/db.json", "utf8");
-//         console.log(jsonString);
-//         res.json(JSON.parse(jsonString))
-//     }
-//     catch (err) {
-//         console.log("Error passing JSON", err)
-//     }
-// });
-
 const getNotes = () => {
     try {
         const jsonString = fs.readFileSync("./db/db.json", "utf8");
@@ -44,50 +33,58 @@ const getNotes = () => {
     }
 }
 
-app.get('/api/notes', (req, res) => {
-    // Read Json file asyncronily
-    // fs.readFile("./db/db.json", "utf8", (err, jsonString) => {
-    //     if (err) {
-    //         console.log(err);
-    //     }
-    //     else {
-    //         try {
-    //             res.json(JSON.parse(jsonString))
-    //         }
-    //         catch (parseErr) {
-    //             console.log("Error passing JSON", parseErr)
-    //         }
-    //     }
-    // });
-    console.log(getNotes())
-    res.json(getNotes());
-});
-
-// POST
-// app.post("/api/notes", (req, res) => {
-//     // Our "server" will take a note and save it to database.
-//     // It will return the saved note to the client.
-//     // req.body is available since we're using the body parsing middleware
-//     notesData.push(req.body);
-//     res.json(req.body);
-// })
-
-app.post('/api/notes', (req, res) => {
-
-    let notesData = getNotes();
-    notesData.push(req.body);
-    // Write Json file asyncronily
-    const jsonString = JSON.stringify(notesData);
+const writeNotes = (jsonString) => {
     fs.writeFile("./db/db.json", jsonString, (err) => {
         if (err) {
             console.log(err);
         }
         else {
             console.log("Database Updated Successfully!");
-            res.json(req.body);
         }
     });
+}
+
+
+app.get('/api/notes', (req, res) => {
+    console.log(getNotes())
+    res.json(getNotes());
 });
+
+// POST
+app.post('/api/notes', (req, res) => {
+
+    let notesData = getNotes();
+    let newNote = req.body;
+    newNote.id = uniqid();
+    notesData.push(newNote);
+    // Write Json file asyncronily
+    const jsonString = JSON.stringify(notesData);
+    
+    writeNotes(jsonString);
+    res.json(newNote);
+});
+
+// Update
+// app.put("/api/notes/:id", function (req, res) {
+//     let notesData = getNotes();     // Storage all notes
+//     const chosen = req.params.id;   // Storage the ID selected
+
+//     let newData = notesData.filter(note => note.id !== chosen);
+    
+//     writeNotes(JSON.stringify(newData));
+//     res.send('Note Updated')
+//   })
+
+// Delete
+app.delete("/api/notes/:id", function (req, res) {
+    let notesData = getNotes();     // Storage all notes
+    const chosen = req.params.id;   // Storage the ID selected
+
+    let newData = notesData.filter(note => note.id !== chosen);
+    
+    writeNotes(JSON.stringify(newData));
+    res.send('Note Deleted')
+  })
 
 // If no matching route is found default to home
 app.get('*', (req, res) => res.sendFile(path.join(__dirname, '/public/index.html')));
