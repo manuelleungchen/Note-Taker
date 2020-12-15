@@ -8,7 +8,7 @@ const uniqid = require("uniqid")    // Module to create a random ID
 // const notesData = require('./db/db.json'); // These data sources hold arrays of information on notes data
 
 const app = express();  // Server Object
-const PORT = 3000;  // Variable to storage Server Port
+const PORT = process.env.PORT || 3001;  // Variable to storage Server Port
 
 // Sets up the Express app to handle data parsing
 app.use(express.urlencoded({ extended: true }));
