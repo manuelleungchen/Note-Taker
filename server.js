@@ -65,15 +65,23 @@ app.post('/api/notes', (req, res) => {
 });
 
 // Update
-// app.put("/api/notes/:id", function (req, res) {
-//     let notesData = getNotes();     // Storage all notes
-//     const chosen = req.params.id;   // Storage the ID selected
+app.put("/api/notes/:id", function (req, res) {
+    let notesData = getNotes();     // Storage all notes
+    const chosen = req.params.id;   // Storage the ID selected
 
-//     let newData = notesData.filter(note => note.id !== chosen);
-    
-//     writeNotes(JSON.stringify(newData));
-//     res.send('Note Updated')
-//   })
+    // console.log(notesData);
+    let newData = notesData.map(note => { 
+        if (note.id === chosen) {
+            let newNote = req.body;
+            newNote.id = chosen;
+            note = newNote;
+        }
+        return note;
+    })
+    // console.log(`This is the new data ${newData}`);
+    writeNotes(JSON.stringify(newData));
+    res.json(req.body);
+  })
 
 // Delete
 app.delete("/api/notes/:id", function (req, res) {
